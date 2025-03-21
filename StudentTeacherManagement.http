@@ -1,0 +1,6 @@
+@StudentTeacherManagement_HostAddress = http://localhost:5078
+
+GET {{StudentTeacherManagement_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
