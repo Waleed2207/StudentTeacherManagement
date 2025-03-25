@@ -5,9 +5,10 @@ using StudentTeacherManagement.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
+
 namespace StudentTeacherManagement.Controllers;
+
 [Route("api/auth")]
 [ApiController]
 public class AuthController : ControllerBase
@@ -21,7 +22,7 @@ public class AuthController : ControllerBase
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         RoleManager<IdentityRole> roleManager,
-        IConfiguration configuration )
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -29,57 +30,77 @@ public class AuthController : ControllerBase
         _configuration = configuration;
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        // Check if the role exists, if not, create it
-        if (!await _roleManager.RoleExistsAsync(model.Role))
+        // ✅ Restrict roles to predefined values
+        var allowedRoles = new[] { "Admin", "Teacher", "Student" };
+        if (!allowedRoles.Contains(model.Role))
         {
-            await _roleManager.CreateAsync(new IdentityRole(model.Role));
+            return BadRequest(new { message = $"Invalid role. Allowed roles: {string.Join(", ", allowedRoles)}" });
         }
 
-        var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-        var result = await _userManager.CreateAsync(user, model.Password);
+        var user = new ApplicationUser
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            FullName = model.FullName // ✅ Set full name
 
+        };
+
+        var result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded) return BadRequest(result.Errors);
 
-        // Assign role to the user
         await _userManager.AddToRoleAsync(user, model.Role);
 
         return Ok(new { message = "User registered successfully!" });
     }
 
-
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
         var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user == null) return Unauthorized(new { message = "Invalid credentials" });
+        if (user == null)
+            return Unauthorized(new { message = "Invalid credentials" });
 
         var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, false, false);
-        if (!result.Succeeded) return Unauthorized(new { message = "Invalid credentials" });
+        if (!result.Succeeded)
+            return Unauthorized(new { message = "Invalid credentials" });
 
-        // Generate JWT Token
-        var token = GenerateJwtToken(user);
-        return Ok(new {  message = "User login successfully!", token });
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = GenerateJwtToken(user, roles);
+
+        return Ok(new
+        {
+            message = "User login successful!",
+            token,
+            user = new
+            {
+                email = user.Email,
+                fullName = user.FullName,
+                role = roles.FirstOrDefault()
+            }
+        });
     }
 
-    private string GenerateJwtToken(ApplicationUser user)
+    // ✅ Make token generator async-safe by accepting roles as a parameter
+    private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var roles = _userManager.GetRolesAsync(user).Result;
 
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
         };
 
-        // Add roles to claims
+        // ✅ Use ClaimTypes.Role so ASP.NET understands it
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var token = new JwtSecurityToken(
@@ -87,7 +108,8 @@ public class AuthController : ControllerBase
             audience: _configuration["Jwt:Issuer"],
             claims: claims,
             expires: DateTime.UtcNow.AddHours(3),
-            signingCredentials: creds);
+            signingCredentials: creds
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

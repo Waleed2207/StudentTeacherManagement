@@ -156,6 +156,7 @@
 /Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/StudentTeacherManagement.csproj.CoreCompileInputs.cache
 /Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/StudentTeacherManagement.MvcApplicationPartsAssemblyInfo.cs
 /Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/StudentTeacherManagement.MvcApplicationPartsAssemblyInfo.cache
+/Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/StudentTeacherManagement.sourcelink.json
 /Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/scopedcss/bundle/StudentTeacherManagement.styles.css
 /Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/staticwebassets.build.json
 /Users/waleedjohjah/RiderProjects/StudentTeacherManagement/StudentTeacherManagement/obj/Debug/net9.0/staticwebassets.development.json

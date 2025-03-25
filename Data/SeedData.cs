@@ -9,7 +9,7 @@ namespace StudentTeacherManagement.Data
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            string[] roleNames = { "Teacher", "Student" };
+            string[] roleNames = { "Admin","Teacher", "Student" };
 
             foreach (var roleName in roleNames)
             {
@@ -20,5 +20,6 @@ namespace StudentTeacherManagement.Data
                 }
             }
         }
+        
     }
 }

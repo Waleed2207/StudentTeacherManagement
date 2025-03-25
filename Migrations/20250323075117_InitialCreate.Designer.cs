@@ -12,8 +12,8 @@ using StudentTeacherManagement.Data;
 namespace StudentTeacherManagement.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250321000212_RemoveRoleColumn")]
-    partial class RemoveRoleColumn
+    [Migration("20250323075117_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -234,10 +234,10 @@ namespace StudentTeacherManagement.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("StudentTeacherManagement.Models.Assignment", b =>
+            modelBuilder.Entity("StudentTeacherManagement.Models.Entities.Assignment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -245,13 +245,15 @@ namespace StudentTeacherManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("Deadline")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TeacherId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -259,10 +261,12 @@ namespace StudentTeacherManagement.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TeacherId");
+
                     b.ToTable("Assignments");
                 });
 
-            modelBuilder.Entity("StudentTeacherManagement.Models.Submission", b =>
+            modelBuilder.Entity("StudentTeacherManagement.Models.Entities.Submission", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -277,16 +281,18 @@ namespace StudentTeacherManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Grade")
-                        .HasColumnType("int");
+                    b.Property<float?>("Grade")
+                        .HasColumnType("real");
 
                     b.Property<string>("StudentId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AssignmentId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("Submissions");
                 });
@@ -342,18 +348,36 @@ namespace StudentTeacherManagement.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StudentTeacherManagement.Models.Submission", b =>
+            modelBuilder.Entity("StudentTeacherManagement.Models.Entities.Assignment", b =>
                 {
-                    b.HasOne("StudentTeacherManagement.Models.Assignment", "Assignment")
+                    b.HasOne("StudentTeacherManagement.Models.ApplicationUser", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("StudentTeacherManagement.Models.Entities.Submission", b =>
+                {
+                    b.HasOne("StudentTeacherManagement.Models.Entities.Assignment", "Assignment")
                         .WithMany("Submissions")
                         .HasForeignKey("AssignmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("StudentTeacherManagement.Models.ApplicationUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Assignment");
+
+                    b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("StudentTeacherManagement.Models.Assignment", b =>
+            modelBuilder.Entity("StudentTeacherManagement.Models.Entities.Assignment", b =>
                 {
                     b.Navigation("Submissions");
                 });
