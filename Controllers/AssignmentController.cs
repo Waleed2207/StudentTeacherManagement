@@ -115,45 +115,44 @@ namespace StudentTeacherManagement.Controllers
             }
         }
 
-
-        // ✅ GET: api/assignments - View Assignments (Teachers & Students)
-        // Fix in AssignmentsController - GetAssignments()
-        // [HttpGet]
-        // [Authorize(Policy = "TeacherPolicy")]
-        // public async Task<IActionResult> GetAssignments()
-        // {
-        //     try
-        //     {
-        //         var assignments = await _unitOfWork.Assignments.GetAll()
-        //             .Include(a => a.Teacher)
-        //             .Include(a => a.Submissions)
-        //             .ThenInclude(s => s.Student)
-        //             .ToListAsync();
-        //
-        //         var result = assignments.Select(a => new
-        //         {
-        //             a.Id,
-        //             a.Title,
-        //             a.Description,
-        //             a.Deadline,
-        //             TeacherName = a.Teacher?.FullName,
-        //             Submissions = a.Submissions.Select(s => new
-        //             {
-        //                 s.Id,
-        //                 s.StudentId,
-        //                 s.Content,
-        //                 s.Grade,
-        //                 StudentName = s.Student?.FullName
-        //             })
-        //         });
-        //
-        //         return Ok(result);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return StatusCode(500, new { message = "Error fetching assignments", error = ex.Message });
-        //     }
-        // }
+       // ✅ GET: api/assignments - View Assignments (Teachers & Students)
+      //  Fix in AssignmentsController - GetAssignments()
+        [HttpGet("admin")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> GetAssignments()
+        {
+            try
+            {
+                var assignments = await _unitOfWork.Assignments.GetAll()
+                    .Include(a => a.Teacher)
+                    .Include(a => a.Submissions)
+                    .ThenInclude(s => s.Student)
+                    .ToListAsync();
+        
+                var result = assignments.Select(a => new
+                {
+                    a.Id,
+                    a.Title,
+                    a.Description,
+                    a.Deadline,
+                    TeacherName = a.Teacher?.FullName,
+                    Submissions = a.Submissions.Select(s => new
+                    {
+                        s.Id,
+                        s.StudentId,
+                        s.Content,
+                        s.Grade,
+                        StudentName = s.Student?.FullName
+                    })
+                });
+        
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error fetching assignments", error = ex.Message });
+            }
+        }
 
  
         // ✅ POST: api/assignments - Create Assignment (Teacher only) 
